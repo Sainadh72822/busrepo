@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LuxBus • Luxury Bus Ticket Booking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1020; --fg:#e9eef5; --muted:#a9b3c7; --card:#121833aa; --brand:#6dd5fa; --brand2:#4e89ff;
+      --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--fg);
+      background:
+        radial-gradient(1200px 600px at 90% -10%, #3b82f655 0%, transparent 60%),
+        radial-gradient(1000px 400px at 10% -20%, #22d3ee44 0%, transparent 70%),
+        linear-gradient(180deg,#0a0f1f 0%, #0e1428 100%);
+      background-attachment: fixed;
+    }
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(8px);
+      background:linear-gradient(90deg,#101733cc,#0d1224cc);
+      border-bottom:1px solid #ffffff1a;
+    }
+    .container{max-width:1200px; margin:0 auto; padding:18px 20px}
+    .hero{display:flex; gap:18px; align-items:center; justify-content:space-between}
+    .brand{display:flex; gap:12px; align-items:center}
+    .logo{width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,var(--brand),var(--brand2)); box-shadow:0 8px 30px #6dd5fa55}
+    h1{font-size:clamp(20px,3.2vw,28px); margin:0; letter-spacing:0.2px}
+    .tag{font-size:12px; color:var(--muted)}
+
+    .controls{display:grid; grid-template-columns: repeat(4,minmax(0,1fr)) 120px; gap:10px; margin-top:12px}
+    .input, select, button{width:100%; padding:12px 14px; border-radius:12px; border:1px solid #ffffff1a; color:var(--fg); background:#11162ea8; outline:none}
+    select{appearance:none; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="%23a9b3c7"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat:no-repeat; background-position:right 12px center}
+    button.primary{background:linear-gradient(135deg,var(--brand),var(--brand2)); border:none; color:#0b1020; font-weight:800; cursor:pointer}
+    button.primary:hover{filter:brightness(1.05)}
+
+    .grid{display:grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap:18px; margin:24px 0 40px}
+    .card{position:relative; border-radius:18px; overflow:hidden; background:linear-gradient(180deg,#172042cc,#0c122bcc); border:1px solid #ffffff1a; box-shadow:0 10px 40px #0007}
+    .thumb{height:150px; background:#0a0f1f; overflow:hidden}
+    .thumb img{width:100%; height:100%; object-fit:cover; display:block; filter:saturate(110%) contrast(105%)}
+    .body{padding:16px}
+    .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .pill{font-size:12px; padding:6px 10px; border-radius:999px; background:#ffffff12; color:#cbd5e1; border:1px solid #ffffff1f}
+    .title{font-weight:700; font-size:16px; margin:0 0 6px}
+    .meta{font-size:12px; color:var(--muted)}
+    .price{font-size:20px; font-weight:800}
+    .badge{position:absolute; top:10px; left:10px; background:#111827cc; border:1px solid #ffffff22; padding:6px 10px; border-radius:999px; font-size:12px}
+
+    .section-title{margin:34px 0 10px; font-size:18px; font-weight:800; letter-spacing:0.3px}
+
+    .footer{color:#8b95a9; font-size:12px; border-top:1px solid #ffffff1a; padding:20px 0;}
+    .credits a{color:#b8c2ff; text-decoration:none}
+
+    .soldout{opacity:0.55;}
+    .hidden{display:none}
+
+    /* Modal */
+    dialog{border:none; border-radius:18px; padding:0; width:min(520px,90vw); background:#0d1328; color:var(--fg); box-shadow:0 40px 120px #000a}
+    .modal-header{padding:16px 18px; border-bottom:1px solid #ffffff1a; display:flex; justify-content:space-between; align-items:center}
+    .modal-body{padding:18px}
+    .modal-actions{display:flex; gap:10px; justify-content:flex-end; padding:0 18px 18px}
+    .ghost{background:#11162ea8; border:1px solid #ffffff1a; color:var(--fg); border-radius:12px; padding:10px 14px}
+    .success{background:linear-gradient(135deg,#34d399,#22c55e); border:none; color:#04210f; font-weight:800; padding:10px 14px; border-radius:12px}
+    .closex{all:unset; cursor:pointer; color:#cbd5e1}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container hero">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>LuxBus • Ticket Booking</h1>
+          <div class="tag">Modern UI • Realistic demo with luxury coach images from the web</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; align-items:center">
+        <span class="pill">Secure Checkout</span>
+        <span class="pill">24×7 Support</span>
+      </div>
+    </div>
+    <div class="container">
+      <div class="controls">
+        <input id="from" class="input" placeholder="From (e.g., Hyderabad)" />
+        <input id="to" class="input" placeholder="To (e.g., Bengaluru)" />
+        <input id="date" class="input" type="date" />
+        <select id="type">
+          <option value="">All bus types</option>
+          <option>Sleeper AC</option>
+          <option>Volvo 9900</option>
+          <option>Mercedes Tourismo</option>
+          <option>Scania Touring</option>
+          <option>Electric Coach</option>
+        </select>
+        <button class="primary" id="search">Search</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h2 class="section-title">Available Luxury Buses</h2>
+    <div id="cards" class="grid"></div>
+
+    <h3 class="section-title">How pricing works</h3>
+    <p class="meta">Fares shown are typical market ranges for premium intercity coaches (demo data). Final prices can vary by operator, season, and seat type.</p>
+
+    <div class="footer">
+      <div class="credits">
+        Image credits: Volvo 9900, Mercedes-Benz Tourismo, Scania Touring, BYD C9 electric coach, and SETC AC Sleeper images sourced from Wikimedia/official pages (links embedded in code comments).
+      </div>
+    </div>
+  </main>
+
+  <dialog id="bookModal">
+    <div class="modal-header">
+      <strong>Complete your booking</strong>
+      <button class="closex" onclick="modal.close()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="summary" class="meta"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px">
+        <input id="fullname" class="input" placeholder="Full name"/>
+        <input id="phone" class="input" placeholder="Phone"/>
+        <input id="email" class="input" placeholder="Email"/>
+        <input id="seats" class="input" type="number" min="1" value="1" placeholder="Seats"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="ghost" onclick="modal.close()">Cancel</button>
+      <button class="success" id="pay">Pay & Book</button>
+    </div>
+  </dialog>
+
+  <script>
+    // ===== Demo dataset =====================================================
+    // NOTE: All images are hotlinked to public pages. See credits below.
+    const buses = [
+      {
+        id: 'v9900', operator: 'SkyRoads', type: 'Volvo 9900', route: 'Hyderabad → Bengaluru',
+        depart: '21:30', durationHrs: 9.5, fare: 1899, seats: 14,
+        // Image: Volvo 9900 at IAA 2018 — Wikimedia
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Volvo_9900_6x2_-_Front_and_right_side_IAA_2018.jpg/1280px-Volvo_9900_6x2_-_Front_and_right_side_IAA_2018.jpg',
+        features: ['Wi‑Fi','Recliners','Charging ports']
+      },
+      {
+        id: 'mbtour', operator: 'SilverLine', type: 'Mercedes Tourismo', route: 'Mumbai → Pune',
+        depart: '07:45', durationHrs: 3.0, fare: 799, seats: 6,
+        // Image: Mercedes-Benz Tourismo — Wikimedia
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Mercedes-Tourismo.jpg/1227px-Mercedes-Tourismo.jpg',
+        features: ['AC','TV','Snacks']
+      },
+      {
+        id: 'scan', operator: 'GreenWay', type: 'Scania Touring', route: 'Delhi → Jaipur',
+        depart: '10:15', durationHrs: 5.0, fare: 1249, seats: 22,
+        // Image: Scania Touring Kortrijk — Wikimedia
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/Scania_Touring_Kortrijk.jpg/1280px-Scania_Touring_Kortrijk.jpg',
+        features: ['Footrests','Reading lamps','AC']
+      },
+      {
+        id: 'sleeper', operator: 'NightOwl', type: 'Sleeper AC', route: 'Chennai → Coimbatore',
+        depart: '22:15', durationHrs: 8.0, fare: 1499, seats: 0,
+        // Image: SETC AC Sleeper — Wikimedia
+        img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/AC_Sleeper_Bus.jpg/1280px-AC_Sleeper_Bus.jpg',
+        features: ['Bunks','Blanket','Mineral water']
+      },
+      {
+        id: 'ev', operator: 'EcoRide', type: 'Electric Coach', route: 'Ahmedabad → Udaipur',
+        depart: '06:40', durationHrs: 5.5, fare: 999, seats: 9,
+        // Image: BYD C9 electric coach — Wikimedia
+        img: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/BYD_C9_03.jpg',
+        features: ['Quiet ride','USB-C','Low emissions']
+      }
+    ];
+
+    // ===== Utilities ========================================================
+    function eta(depart, durationHrs){
+      const [h,m] = depart.split(':').map(Number);
+      const start = new Date();
+      start.setHours(h,m,0,0);
+      const etaMs = start.getTime() + durationHrs * 3600_000;
+      const end = new Date(etaMs);
+      const hh = String(end.getHours()).padStart(2,'0');
+      const mm = String(end.getMinutes()).padStart(2,'0');
+      return `${hh}:${mm}`;
+    }
+    function timeBadge(depart, duration){ return `${depart} → ${eta(depart, duration)} (${duration.toFixed(1)}h)` }
+
+    function currency(n){ return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(n) }
+
+    // ===== Render ===========================================================
+    const grid = document.getElementById('cards');
+    function render(list){
+      grid.innerHTML = '';
+      list.forEach(b => {
+        const sold = b.seats<=0;
+        const card = document.createElement('article');
+        card.className = 'card'+(sold?' soldout':'');
+        card.innerHTML = `
+          <div class="badge">${b.type}</div>
+          <div class="thumb"><img alt="${b.type}" src="${b.img}"/></div>
+          <div class="body">
+            <div class="row">
+              <h3 class="title">${b.operator}</h3>
+              <div class="price">${currency(b.fare)}</div>
+            </div>
+            <div class="meta">${b.route}</div>
+            <div class="row" style="margin-top:8px">
+              <span class="pill">${timeBadge(b.depart, b.durationHrs)}</span>
+              <span class="pill">${b.seats>0 ? (b.seats+ ' seats left') : 'Sold out'}</span>
+            </div>
+            <div class="meta" style="margin-top:8px">Amenities: ${b.features.join(' · ')}</div>
+            <div class="row" style="margin-top:12px">
+              <button class="ghost" onclick="details('${b.id}')">Details</button>
+              <button class="primary" ${sold?'disabled':''} onclick="book('${b.id}')">Book</button>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      })
+    }
+
+    function applyFilters(){
+      const f = document.getElementById('from').value.trim().toLowerCase();
+      const t = document.getElementById('to').value.trim().toLowerCase();
+      const type = document.getElementById('type').value;
+      const date = document.getElementById('date').value; // reserved for future
+
+      let list = buses.filter(b=>{
+        const [src,dst] = b.route.toLowerCase().split(' → ');
+        const matchFrom = f? src.includes(f) : true;
+        const matchTo = t? dst.includes(t) : true;
+        const matchType = type? b.type===type : true;
+        return matchFrom && matchTo && matchType;
+      })
+      render(list);
+    }
+
+    document.getElementById('search').addEventListener('click', applyFilters);
+
+    function details(id){
+      const b = buses.find(x=>x.id===id);
+      alert(`${b.operator} — ${b.type}\nRoute: ${b.route}\nDeparture: ${b.depart}\nETA: ${eta(b.depart,b.durationHrs)}\nDuration: ${b.durationHrs.toFixed(1)} hours\nFare: ${currency(b.fare)}\nFeatures: ${b.features.join(', ')}`);
+    }
+
+    const modal = document.getElementById('bookModal');
+    function book(id){
+      const b = buses.find(x=>x.id===id);
+      document.getElementById('summary').textContent = `${b.operator} • ${b.type} • ${b.route} • ${b.depart} → ${eta(b.depart,b.durationHrs)} • ${currency(b.fare)} per seat`;
+      modal.showModal();
+      document.getElementById('pay').onclick = ()=>{
+        const seats = Math.max(1, parseInt(document.getElementById('seats').value||'1',10));
+        const total = b.fare * seats;
+        alert(`Booking confirmed!\nPNR: LX${Date.now().toString().slice(-6)}\n${b.operator} (${b.type})\n${b.route}\nDeparture ${b.depart} → ETA ${eta(b.depart,b.durationHrs)}\nSeats: ${seats}\nAmount paid: ${currency(total)}`);
+        modal.close();
+      }
+    }
+
+    // Initial render
+    render(buses);
+  </script>
+
+  <!-- Image sources / credits (for reference)
+    Volvo 9900: https://commons.wikimedia.org/wiki/File:Volvo_9900_6x2_-_Front_and_right_side_IAA_2018.jpg
+    Mercedes-Benz Tourismo: https://commons.wikimedia.org/wiki/File:Mercedes-Tourismo.jpg (CC BY 3.0)
+    Scania Touring: https://commons.wikimedia.org/wiki/File:Scania_Touring_Kortrijk.jpg (CC BY-SA 4.0)
+    BYD C9 (electric coach): https://commons.wikimedia.org/wiki/File:BYD_C9_03.jpg (CC BY-SA 4.0)
+    SETC AC Sleeper: https://commons.wikimedia.org/wiki/File:AC_Sleeper_Bus.jpg (CC BY-SA 4.0)
+  -->
+</body>
+</html>
